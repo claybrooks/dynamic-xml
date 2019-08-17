@@ -13,7 +13,9 @@ class XMLFile(object):
     #                                                                                                                  #
     ####################################################################################################################
     def __init__(self, fullPathToXml, fullPathToXmlSpec):
-        self.__xmlRoot = None
+        self.__xmlRoot              = None
+        self.__fullPathToXml        = fullPathToXml
+        self.__fullPathToXmlSpec    = fullPathToXmlSpec
 
         try:
             with open(fullPathToXmlSpec, 'r') as f:
@@ -38,7 +40,17 @@ class XMLFile(object):
         if self.__xmlData.getroot() == None:
             return
 
-        self.__root = XMLElement(self.__xmlData.getroot(), self.__specData)
+        self.__root = XMLElement(self.__specData, xmlElement=self.__xmlData.getroot())
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
+    def saveToFile(self, fullPath='', *args, **kwargs):
+        pathToUse = self.__fullPathToXml
+        if fullPath != '':
+            pathToUse = fullPath
+
+        self.__xmlData.write(file=pathToUse, pretty_print=True, *args, **kwargs)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -72,3 +84,5 @@ if __name__=='__main__':
 
                 result.setAttributeTestattr("Updating to a new value!")
                 print (result.getAttributeTestattr())
+
+    xml.saveToFile(fullPath='TestFiles/ModifiedInput.xml')

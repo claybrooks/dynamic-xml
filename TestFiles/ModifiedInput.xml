@@ -1,0 +1,17 @@
+<root>
+    <Test attr="test" attr2="test2">
+        <Result testattr="Updating to a new value!">
+            Hello, new result!
+        </Result>
+    </Test>
+    <Test attr="no_test" attr2="no_test2">
+        <Result testattr="Updating to a new value!">
+            Hello, new result!
+        </Result>
+    </Test>
+    <Test>
+        <Result testattr="Updating to a new value!">
+            With some added text
+        </Result>
+    </Test>
+</root>

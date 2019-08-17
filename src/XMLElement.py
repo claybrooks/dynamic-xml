@@ -1,7 +1,5 @@
 from lxml import etree as et
 import json
-
-from XMLAttribute import XMLAttribute
         
 ########################################################################################################################
 #                                                                                                                      #
@@ -11,13 +9,12 @@ class XMLElement(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
-    def __init__(self, xmlElement, specData):
+    def __init__(self, specData, xmlElement=None, tag=None):
         self.__subElements = {}
-        self.__attributes = {}
-        self.__text = ""
-        self.__tag = ""
 
-        self.__subElementClasses = {}
+        self.__xmlElement = xmlElement
+        if self.__xmlElement == None:
+            self.__xmlElement = et.Element(tag)
         
         self.__specData = specData
         self.__generateFunctionWrappers()
@@ -28,19 +25,19 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def getTag(self):
-        return self.__tag
+        return self.__xmlElement.tag
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def setText(self, newText):
-        self.__text = newText
+        self.__xmlElement.text = newText
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def getText(self):
-        return self.__text
+        return self.__xmlElement.text
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -59,14 +56,14 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def attributes(self):
-        return self.__attributes
+        return self.__xmlElement.attrib
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def getAttribute(self, name):
-        if name in self.__attributes:
-            return self.__attributes[name]
+        if name in self.__xmlElement.attrib.keys():
+            return self.__xmlElement.attrib[name]
         else:
             return None
 
@@ -74,16 +71,18 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def hasAttribute(self, name):
-        return name in self.__attributes
+        return name in self.__xmlElement.attrib.keys()
     
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def setAttribute(self, name, val):
-        if name not in self.__attributes:
-            self.__attributes[name] = XMLAttribute(name)
+        stringified = str(val)
 
-        return self.__attributes[name].setValue(val)
+        if not self.hasAttribute(name):
+            self.__xmlElement.attrib[name] = stringified
+        else:
+            self.__xmlElement.set(name, stringified)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -114,7 +113,7 @@ class XMLElement(object):
         if specData == None:
             return None
         
-        return XMLElement(None, specData)
+        return XMLElement(specData, tag=name)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -128,6 +127,7 @@ class XMLElement(object):
 
         if obj != None:
             self.__subElements[name].insert(idx, obj)
+            self.__xmlElement.insert(idx, obj.__xmlElement)
             
     ####################################################################################################################
     #                                                                                                                  #
@@ -137,6 +137,7 @@ class XMLElement(object):
             return
 
         del self.__subElements[name][idx]
+        self.__xmlElement.remove(idx)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -192,15 +193,7 @@ class XMLElement(object):
             return
 
         # save off tag
-        self.__tag = xmlElement.tag
-
-        # save off text data
-        self.__text = xmlElement.text
-
-        # iterate through all attributes
-        for key, value in xmlElement.items():
-            self.__attributes[key] = XMLAttribute(key)
-            self.__attributes[key].setValue(value)
+        self.__xmlElement = xmlElement
 
         specData = {}
         # iterate through all sub elements
@@ -214,11 +207,11 @@ class XMLElement(object):
                 continue
 
             # build new element
-            newEle = XMLElement(element, specData[tag])
+            newEle = XMLElement(specData[tag], xmlElement=element)
 
             # first time we are seeing this tag
             if tag not in self.__subElements:
-                self.__subElements[tag] = list()
+                self.__subElements[tag] = []
             
             # append new item
             self.__subElements[tag].append(newEle)
@@ -261,25 +254,27 @@ class XMLElement(object):
     ####################################################################################################################
     def __wrapElement(self, name):
         
-        # we've already created this class
+        # whether or not this element can be single or multi
+        isMulti = self.__specData['isMulti']
+
+        # capitalized name
+        capitalized = name.capitalize()
+
+        # plural of the name
+        plural = capitalized
+        if not capitalized.endswith('s'):
+            plural += 's'
+        
         def has():
             return self.hasElement(name)
 
         def get():
             return self.getElement(name)
 
-        isMulti = self.__specData['isMulti']
+        setattr(self, f'get{plural if isMulti else capitalized}', get)
+        setattr(self, f'has{plural if isMulti else capitalized}', has)
 
-        capitalized = name.capitalize()
-
-        if not isMulti:
-            setattr(self, f'get{capitalized}', get)
-            setattr(self, f'has{capitalized}', has)
-        else:
-
-            plural = capitalized
-            if not capitalized.endswith('s'):
-                plural += 's'
+        if isMulti:
 
             def iter():
                 return self.iterateElement(name)
