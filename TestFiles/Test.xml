@@ -1,0 +1,9 @@
+<root>
+    <Test attr="test" attr2="test2" />
+    <Test attr="no_test" attr2="no_test2" />
+    <Test>
+        <Result testattr="this is a testValue!">
+        With some added text
+        </Result>
+    </Test>
+</root>

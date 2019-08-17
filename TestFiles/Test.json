@@ -1,0 +1,9 @@
+{
+    "subElements": {
+        "Result":"TestFiles/Result.json"
+    },
+    "attributes": [
+        "attr",
+        "attr2"
+    ]
+}
