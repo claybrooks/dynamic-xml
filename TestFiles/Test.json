@@ -1,7 +1,12 @@
 {
+    "elementTag":"Test",
+
+    "isMulti": "True",
+
     "subElements": {
         "Result":"TestFiles/Result.json"
     },
+    
     "attributes": [
         "attr",
         "attr2"

@@ -1,7 +1,12 @@
 {
+    "elementTag":"Result",
+
+    "isMulti": "True",
+
     "subElements":{
 
     },
+    
     "attributes":[
         "testattr"
     ]

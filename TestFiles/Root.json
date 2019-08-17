@@ -1,7 +1,12 @@
 {
+    "elementTag":"Root",
+    
+    "isMulti":"False",
+
     "subElements": {
         "Test": "TestFiles/Test.json"
     },
+    
     "attributes": [
 
     ]

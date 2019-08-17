@@ -12,17 +12,17 @@ class XMLFile(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
-    def __init__(self, fullPath, xmlSpecPath):
+    def __init__(self, fullPathToXml, fullPathToXmlSpec):
         self.__xmlRoot = None
 
         try:
-            with open(xmlSpecPath, 'r') as f:
+            with open(fullPathToXmlSpec, 'r') as f:
                 self.__specData = json.load(f)
         except Exception as e:
             print (e)
             return
 
-        self.loadFromFile(fullPath)
+        self.loadFromFile(fullPathToXml)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -53,23 +53,22 @@ if __name__=='__main__':
     xml = XMLFile('TestFiles/Test.xml', 'TestFiles/Root.json')
     root = xml.getRoot()
 
-    if root.hasElementTest():
+    for test in root.iterTests():
+        if test.hasAttributeAttr():
+            print (test.getAttributeAttr())
 
-        testElements = root.getElementTest()
+        if test.hasAttributeAttr2():
+            print (test.getAttributeAttr2())
 
-        for test in testElements:
-            if test.hasAttributeAttr():
-                print (test.getAttributeAttr())
+        if not test.hasResults():
+            newResult = test.createResult()
+            newResult.setText('Hello, new result!')
+            newResult.setAttributeTestattr('Set dynamically')
+            test.appendResult(newResult)
 
-            if test.hasAttributeAttr2():
-                print (test.getAttributeAttr2())
+        for result in test.iterResults():
+            if result.hasAttributeTestattr():
+                print (result.getAttributeTestattr())
 
-            if test.hasElementResult():
-                results = test.getElementResult()
-
-                for result in results:
-                    if result.hasAttributeTestattr():
-                        print (result.getAttributeTestattr())
-
-                        result.setAttributeTestattr("Updating to a new value!")
-                        print (result.getAttributeTestattr())
+                result.setAttributeTestattr("Updating to a new value!")
+                print (result.getAttributeTestattr())
