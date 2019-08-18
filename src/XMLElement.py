@@ -238,35 +238,8 @@ class XMLElement(object):
     ####################################################################################################################
     def __injectWrappingFunction(self, name, prefixName, func, isPlural, *args, **kwargs):
 
-        # capitalized name
-        name = prefixName + name.capitalize()
-
-        # plural of the name
-        if isPlural and not name.endswith('s'):
-            name += 's'
-
+       
         setattr(self, name, func)
-
-    ####################################################################################################################
-    #                                                                                                                  #
-    ####################################################################################################################
-    def injectFunction(self, name, func):
-
-        def wrap():
-            return func(self)
-
-        setattr(self, name, wrap)
-
-        return True
-
-    ####################################################################################################################
-    #                                                                                                                  #
-    ####################################################################################################################
-    def changeWrappingFunctionName(self, funcName, newName):
-
-        if hasattr(self, funcName):
-            attr = getattr(self, funcName)
-            setattr(self, newName, attr)
 
     ####################################################################################################################
     #                                                                                                                  #
@@ -285,6 +258,9 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def __wrapAttribute(self, name):
+        
+        # capitalized name
+        capitalized =  name.capitalize()
 
         def get():
             return self.getAttribute(name)
@@ -295,15 +271,15 @@ class XMLElement(object):
         def _set(newVal):
             return self.setAttribute(name, newVal)
 
-        self.__injectWrappingFunction(name, 'getAttribute', get, False)
-        self.__injectWrappingFunction(name, 'hasAttribute', has, False)
-        self.__injectWrappingFunction(name, 'setAttribute', _set, False)
+        setattr(self, f'getAttribute{capitalized}', get)
+        setattr(self, f'hasAttribute{capitalized}', has)
+        setattr(self, f'setAttribute{capitalized}', _set)
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def __wrapElement(self, name):
-
+        
         specData = self.getSubElementSpecData(name)
         if specData == None:
             return
@@ -311,6 +287,14 @@ class XMLElement(object):
         # whether or not this element can be single or multi
         isMulti= specData['isMulti']
         isMulti = True if (isMulti=='True' or isMulti=='true' or isMulti=='1') else False
+            
+        # capitalized name
+        capitalized =  name.capitalize()
+
+        # plural of the name
+        plural = capitalized
+        if not name.endswith('s'):
+            plural += 's'
 
         def has():
             return self.hasElement(name)
@@ -321,16 +305,16 @@ class XMLElement(object):
         def create():
             return self.createElement(name)
 
-        self.__injectWrappingFunction(name, 'create',   create, False)
-        self.__injectWrappingFunction(name, 'get',      get,    isMulti)
-        self.__injectWrappingFunction(name, 'has',      has,    isMulti)
+        setattr(self, f'create{capitalized}',                       create)
+        setattr(self, f'get{plural if isMulti else capitalized}',   get)
+        setattr(self, f'has{plural if isMulti else capitalized}',   has)
 
         if not isMulti:
 
             def _set(ele):
                 return self.setElement(name, ele)
 
-            self.__injectWrappingFunction(name, 'set', _set, False)
+            setattr(self, f'set{capitalized}', _set)
 
         else:
 
@@ -358,11 +342,11 @@ class XMLElement(object):
             def clear():
                 self.clearElements(name)
                 
-            self.__injectWrappingFunction(name, 'add',            add,          False)
-            self.__injectWrappingFunction(name, 'remove',         remove,       False)
-            self.__injectWrappingFunction(name, 'iterate',        iterate,      isMulti)
-            self.__injectWrappingFunction(name, 'append',         append,       False)
-            self.__injectWrappingFunction(name, 'prepend',        prepend,      False)
-            self.__injectWrappingFunction(name, 'removeFirst',    removeFirst,  False)
-            self.__injectWrappingFunction(name, 'removeLast',     removeLast,   False)
-            self.__injectWrappingFunction(name, 'clear',          clear,        isMulti)
+            setattr(self, f'add{capitalized}',          add)
+            setattr(self, f'remove{capitalized}',       remove)
+            setattr(self, f'iterate{plural}',           iterate)
+            setattr(self, f'append{capitalized}',       append)
+            setattr(self, f'prepend{capitalized}',      prepend)
+            setattr(self, f'removeFirst{capitalized}',  removeFirst)
+            setattr(self, f'removeLast{capitalized}',   removeLast)
+            setattr(self, f'clear{plural}',             clear)
