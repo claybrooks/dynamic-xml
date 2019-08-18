@@ -6,9 +6,9 @@
     "subElements": {
         "Result":"TestFiles/Result.json"
     },
-    
+
     "attributes": [
-        "attr",
-        "attr2"
+        "name",
+        "date"
     ]
 }

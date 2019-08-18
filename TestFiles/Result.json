@@ -1,13 +1,13 @@
 {
     "elementTag":"Result",
 
-    "isMulti": "True",
+    "isMulti": "False",
 
     "subElements":{
 
     },
-    
+
     "attributes":[
-        "testattr"
+        "score"
     ]
 }

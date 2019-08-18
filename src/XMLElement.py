@@ -12,15 +12,23 @@ class XMLElement(object):
     def __init__(self, specData, xmlElement=None, tag=None):
         self.__subElements = {}
 
+        self.__isMulti = True if (specData['isMulti'] == 'True' or specData['isMulti'] == 'true' or specData['isMulti'] == '1') else False
+
         self.__xmlElement = xmlElement
         if self.__xmlElement == None:
             self.__xmlElement = et.Element(tag)
         
         self.__specData = specData
-        self.__generateFunctionWrappers()
 
+        self.__generateFunctionWrappers()
         self.loadFromXml(xmlElement)
 
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
+    def isMulti(self):
+        return self.__isMulti
+        
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
@@ -94,11 +102,20 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def getElement(self, name):
-        if self.hasElement(name):
-            return self.__subElements[name]
-        else:
-            return None
+        if self.hasElement(name) and len(self.__subElements[name]) > 0:
+            if self.__subElements[name][0].isMulti():
+                return self.__subElements[name]
+            else:
+                return self.__subElements[name][0]
 
+        return None
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
+    def setElement(self, name, obj):
+        self.prependElement(name, obj)
+        
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
@@ -128,7 +145,7 @@ class XMLElement(object):
         if obj != None:
             self.__subElements[name].insert(idx, obj)
             self.__xmlElement.insert(idx, obj.__xmlElement)
-            
+
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
@@ -148,7 +165,7 @@ class XMLElement(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################  
-    def prependElement(self, name, XMLElement=None):
+    def prependElement(self, name, obj=None):
         self.addElement(name, 0, obj)
 
     ####################################################################################################################
@@ -195,8 +212,8 @@ class XMLElement(object):
         # save off tag
         self.__xmlElement = xmlElement
 
-        specData = {}
         # iterate through all sub elements
+        specData = {}
         for element in xmlElement:
             tag = element.tag
             
@@ -219,6 +236,41 @@ class XMLElement(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
+    def __injectWrappingFunction(self, name, prefixName, func, isPlural, *args, **kwargs):
+
+        # capitalized name
+        name = prefixName + name.capitalize()
+
+        # plural of the name
+        if isPlural and not name.endswith('s'):
+            name += 's'
+
+        setattr(self, name, func)
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
+    def injectFunction(self, name, func):
+
+        def wrap():
+            return func(self)
+
+        setattr(self, name, wrap)
+
+        return True
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
+    def changeWrappingFunctionName(self, funcName, newName):
+
+        if hasattr(self, funcName):
+            attr = getattr(self, funcName)
+            setattr(self, newName, attr)
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
     def __generateFunctionWrappers(self):
 
         # go through attributes
@@ -232,55 +284,58 @@ class XMLElement(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
-    def __wrapAttribute(self, attrName):
+    def __wrapAttribute(self, name):
 
         def get():
-            return self.getAttribute(attrName)
+            return self.getAttribute(name)
 
         def has():
-            return self.hasAttribute(attrName)
+            return self.hasAttribute(name)
         
         def _set(newVal):
-            return self.setAttribute(attrName, newVal)
+            return self.setAttribute(name, newVal)
 
-        capitalized = attrName.capitalize()
-
-        setattr(self, f'getAttribute{capitalized}', get)
-        setattr(self, f'hasAttribute{capitalized}', has)
-        setattr(self, f'setAttribute{capitalized}', _set)
+        self.__injectWrappingFunction(name, 'getAttribute', get, False)
+        self.__injectWrappingFunction(name, 'hasAttribute', has, False)
+        self.__injectWrappingFunction(name, 'setAttribute', _set, False)
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def __wrapElement(self, name):
-        
+
+        specData = self.getSubElementSpecData(name)
+        if specData == None:
+            return
+
         # whether or not this element can be single or multi
-        isMulti = self.__specData['isMulti']
+        isMulti= specData['isMulti']
+        isMulti = True if (isMulti=='True' or isMulti=='true' or isMulti=='1') else False
 
-        # capitalized name
-        capitalized = name.capitalize()
-
-        # plural of the name
-        plural = capitalized
-        if not capitalized.endswith('s'):
-            plural += 's'
-        
         def has():
             return self.hasElement(name)
 
         def get():
             return self.getElement(name)
 
-        setattr(self, f'get{plural if isMulti else capitalized}', get)
-        setattr(self, f'has{plural if isMulti else capitalized}', has)
+        def create():
+            return self.createElement(name)
 
-        if isMulti:
+        self.__injectWrappingFunction(name, 'create',   create, False)
+        self.__injectWrappingFunction(name, 'get',      get,    isMulti)
+        self.__injectWrappingFunction(name, 'has',      has,    isMulti)
 
-            def iter():
+        if not isMulti:
+
+            def _set(ele):
+                return self.setElement(name, ele)
+
+            self.__injectWrappingFunction(name, 'set', _set, False)
+
+        else:
+
+            def iterate():
                 return self.iterateElement(name)
-
-            def create():
-                return self.createElement(name)
 
             def add(idx, obj=None):
                 self.addElement(name, idx, obj)
@@ -303,14 +358,11 @@ class XMLElement(object):
             def clear():
                 self.clearElements(name)
                 
-            setattr(self, f'create{capitalized}',       create)
-            setattr(self, f'add{capitalized}',          add)
-            setattr(self, f'remove{capitalized}',       remove)
-            setattr(self, f'get{plural}',               get)
-            setattr(self, f'has{plural}',               has)
-            setattr(self, f'iter{plural}',              iter)
-            setattr(self, f'append{capitalized}',       append)
-            setattr(self, f'prepend{capitalized}',      prepend)
-            setattr(self, f'removeFirst{capitalized}',  removeFirst)
-            setattr(self, f'removeLast{capitalized}',   removeLast)
-            setattr(self, f'clear{plural}',             clear)
+            self.__injectWrappingFunction(name, 'add',            add,          False)
+            self.__injectWrappingFunction(name, 'remove',         remove,       False)
+            self.__injectWrappingFunction(name, 'iterate',        iterate,      isMulti)
+            self.__injectWrappingFunction(name, 'append',         append,       False)
+            self.__injectWrappingFunction(name, 'prepend',        prepend,      False)
+            self.__injectWrappingFunction(name, 'removeFirst',    removeFirst,  False)
+            self.__injectWrappingFunction(name, 'removeLast',     removeLast,   False)
+            self.__injectWrappingFunction(name, 'clear',          clear,        isMulti)

@@ -61,28 +61,72 @@ class XMLFile(object):
 ########################################################################################################################
 #                                                                                                                      #
 ########################################################################################################################
+def getLowestTestScore(self):
+    lowest = None
+
+    for test in self.iterateTests():
+        if not test.hasResult():
+            continue
+
+        result = test.getResult()
+
+        resultScore = float(result.getAttributeScore())
+
+        if lowest == None or \
+            lowest > resultScore:
+            lowest = resultScore
+
+    return lowest
+        
+########################################################################################################################
+#                                                                                                                      #
+########################################################################################################################
+def getHighestTestScore(self):
+    highest = None
+
+    for test in self.iterateTests():
+        if not test.hasResult():
+            continue
+
+        resultScore = float(test.getResult().getAttributeScore())
+
+        if highest == None or \
+            highest < resultScore:
+            highest = resultScore
+
+    return highest
+
+########################################################################################################################
+#                                                                                                                      #
+########################################################################################################################
 if __name__=='__main__':
     xml = XMLFile('TestFiles/Test.xml', 'TestFiles/Root.json')
     root = xml.getRoot()
 
-    for test in root.iterTests():
-        if test.hasAttributeAttr():
-            print (test.getAttributeAttr())
+    root.injectFunction('getLowestTestScore', getLowestTestScore)
+    root.injectFunction('getHighestTestScore', getHighestTestScore)
 
-        if test.hasAttributeAttr2():
-            print (test.getAttributeAttr2())
+    print ('Lowest: ' + str(root.getLowestTestScore()))
+    print ('Highest: ' + str(root.getHighestTestScore()))
 
-        if not test.hasResults():
+    for test in root.iterateTests():
+        if test.hasAttributeName():
+            print (test.getAttributeName())
+
+        if test.hasAttributeDate():
+            print (test.getAttributeDate())
+
+        if not test.hasResult():
             newResult = test.createResult()
-            newResult.setText('Hello, new result!')
-            newResult.setAttributeTestattr('Set dynamically')
-            test.appendResult(newResult)
+            newResult.setAttributeScore('91')
+            test.setResult(newResult)
 
-        for result in test.iterResults():
-            if result.hasAttributeTestattr():
+        if not test.hasResult():
+            result = test.getResult()
+            if result.hasAttributeScore():
                 print (result.getAttributeTestattr())
 
-                result.setAttributeTestattr("Updating to a new value!")
-                print (result.getAttributeTestattr())
+    print ('Lowest: ' + str(root.getLowestTestScore()))
+    print ('Highest: ' + str(root.getHighestTestScore()))
 
     xml.saveToFile(fullPath='TestFiles/ModifiedInput.xml')
