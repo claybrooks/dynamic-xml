@@ -1,5 +1,6 @@
 from lxml import etree as et
 import json
+import re
         
 ########################################################################################################################
 #                                                                                                                      #
@@ -53,7 +54,9 @@ class XMLElement(object):
     def subElements(self, key=None):
         
         if key == None:
-            return self.__subElements
+            for key, _list in self.__subElements.items():
+                for item in _list:
+                    yield key,item
         else:
             if self.hasElement(key):
                 return self.__subElements[key]
@@ -64,13 +67,13 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def attributes(self):
-        return self.__xmlElement.attrib
+        return self.__xmlElement.attrib.items()
 
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
     def getAttribute(self, name):
-        if name in self.__xmlElement.attrib.keys():
+        if self.hasAttribute(name):
             return self.__xmlElement.attrib[name]
         else:
             return None
@@ -102,11 +105,8 @@ class XMLElement(object):
     #                                                                                                                  #
     ####################################################################################################################
     def getElement(self, name):
-        if self.hasElement(name) and len(self.__subElements[name]) > 0:
-            if self.__subElements[name][0].isMulti():
-                return self.__subElements[name]
-            else:
-                return self.__subElements[name][0]
+        if self.hasElement(name):
+            return self.__subElements[name]
 
         return None
 
@@ -257,10 +257,16 @@ class XMLElement(object):
     ####################################################################################################################
     #                                                                                                                  #
     ####################################################################################################################
+    def __capitalize(self, _in):
+        return re.sub('([a-zA-Z])', lambda x: x.groups()[0].upper(), _in, 1)
+
+    ####################################################################################################################
+    #                                                                                                                  #
+    ####################################################################################################################
     def __wrapAttribute(self, name):
         
         # capitalized name
-        capitalized =  name.capitalize()
+        capitalized =  self.__capitalize(name)
 
         def get():
             return self.getAttribute(name)
@@ -289,7 +295,7 @@ class XMLElement(object):
         isMulti = True if (isMulti=='True' or isMulti=='true' or isMulti=='1') else False
             
         # capitalized name
-        capitalized =  name.capitalize()
+        capitalized =  self.__capitalize(name)
 
         # plural of the name
         plural = capitalized
@@ -299,22 +305,27 @@ class XMLElement(object):
         def has():
             return self.hasElement(name)
 
-        def get():
-            return self.getElement(name)
-
         def create():
             return self.createElement(name)
 
         setattr(self, f'create{capitalized}',                       create)
-        setattr(self, f'get{plural if isMulti else capitalized}',   get)
         setattr(self, f'has{plural if isMulti else capitalized}',   has)
 
         if not isMulti:
+
+            def get():
+                toReturn = self.getElement(name)
+
+                if len(toReturn) == 0:
+                    return None
+                else:
+                    return toReturn[0]
 
             def _set(ele):
                 return self.setElement(name, ele)
 
             setattr(self, f'set{capitalized}', _set)
+            setattr(self, f'get{capitalized}', get)
 
         else:
 
@@ -341,6 +352,14 @@ class XMLElement(object):
 
             def clear():
                 self.clearElements(name)
+
+            def get():
+                toReturn = self.getElement(name)
+                
+                if toReturn == None:
+                    return []
+                    
+                return toReturn
                 
             setattr(self, f'add{capitalized}',          add)
             setattr(self, f'remove{capitalized}',       remove)
@@ -350,3 +369,4 @@ class XMLElement(object):
             setattr(self, f'removeFirst{capitalized}',  removeFirst)
             setattr(self, f'removeLast{capitalized}',   removeLast)
             setattr(self, f'clear{plural}',             clear)
+            setattr(self, f'get{plural}',               get)
