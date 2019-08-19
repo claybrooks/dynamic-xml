@@ -59,7 +59,8 @@ class XMLElement(object):
                     yield key,item
         else:
             if self.hasElement(key):
-                return self.__subElements[key]
+                for item in self.__subElements[key]:
+                    yield item
             else:
                 return []
 
