@@ -8,7 +8,7 @@
             "name": "Python: XMLFile",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/XMLFile.py",
+            "program": "${workspaceFolder}/test.py",
             "console": "integratedTerminal"
         }
     ]
