@@ -1,1 +1,39 @@
 # dynamic-xml
+
+A simple extension of Etree that gives users the ability to directly access attributes and nodes without having to
+implement boilerplate python code.
+
+`DynamicElement`{:.python} is a drop-in replaces for any Etree code that you already have
+
+```xml
+<!-- ConfigFile.xml -->
+<ConfigurationData>
+    <Runtime timeout="1000" runtimeDataPath="/path/to/runtime/data" />
+</ConfigurationData>
+```
+
+```python
+# main.py
+import dynamicxml
+
+# parse the data and get back an instance of DynamicElemen
+root = dynamicxml.parse('data/ConfigFile.xml')
+
+# Print the tag of the root element, just like you would a typical etree element
+print (root.tag)
+
+# get access to the runtime data node, which is a child of <ConfigurationData />.  The library returns a list of child
+# nodes, regardless of how many elements there are.  An "AttributeError" is raised if the node does not exist.
+runtimeNode = root.Runtime[0]
+
+# Access the attributes of the node directly using the "attr_" prefix.
+print (runtimeNode.attr_timeout)
+print (runtimeNode.attr_runtimeDataPath)
+
+# set the data directly
+runtimeNode.attr_timeout = str(int(runtimeNode.attr_timeout) + 1)
+
+# easy writing of the data
+dynamicxml.write('data/ConfigFile_Updated.xml', root)
+
+```
