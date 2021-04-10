@@ -14,13 +14,13 @@ from dynamicelement import DynamicElement
 
 def parse(path_to_xml:str) -> DynamicElement:
 
-    #try:
-    with open(path_to_xml, 'r') as f:
-        tree = etree_parse(f, parser=DynamicXmlParser())
-        return tree.getroot()
-   # except BaseException as e:
-        #logging.error(f"Unable to parse {path_to_xml}, {e}")
-        #return None
+    try:
+        with open(path_to_xml, 'r') as f:
+            tree = etree_parse(f, parser=DynamicXmlParser())
+            return tree.getroot()
+    except BaseException as e:
+        logging.error(f"Unable to parse {path_to_xml}, {e}")
+        return None
 
 def write(path_to_xml:str, node:DynamicElement, *args, **kwargs) -> bool:
 
