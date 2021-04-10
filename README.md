@@ -3,7 +3,7 @@
 A simple extension of Etree that gives users the ability to directly access attributes and nodes without having to
 implement boilerplate python code.
 
-`DynamicElement`{:.python} is a drop-in replaces for any Etree code that you already have
+`DynamicElement` is a drop-in replacement for any Etree code that you already have
 
 ```xml
 <!-- ConfigFile.xml -->
@@ -16,14 +16,17 @@ implement boilerplate python code.
 # main.py
 import dynamicxml
 
-# parse the data and get back an instance of DynamicElemen
+# parse the data and get back an instance of DynamicElement
 root = dynamicxml.parse('data/ConfigFile.xml')
 
-# Print the tag of the root element, just like you would a typical etree element
+# Print the tag of the root element, just like you would a typical etree
+# element
 print (root.tag)
 
-# get access to the runtime data node, which is a child of <ConfigurationData />.  The library returns a list of child
-# nodes, regardless of how many elements there are.  An "AttributeError" is raised if the node does not exist.
+# get access to the runtime data node, which is a child of
+# <ConfigurationData />.  The library returns a list of child
+# nodes, regardless of how many elements there are.  An "AttributeError"
+# is raised if the node does not exist.
 runtimeNode = root.Runtime[0]
 
 # Access the attributes of the node directly using the "attr_" prefix.
