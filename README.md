@@ -3,6 +3,8 @@
 A simple extension of Etree that gives users the ability to directly access attributes and nodes without having to
 implement boilerplate python code.
 
+Rationale for this library: [Dynamic XML Library with Python](https://claybrooks.github.io/python/2021/04/09/python-dynamic-xml.html)
+
 `DynamicElement` is a drop-in replacement for any Etree code that you already have
 
 ```xml
