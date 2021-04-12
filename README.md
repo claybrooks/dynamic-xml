@@ -5,7 +5,8 @@ implement boilerplate python code.
 
 Rationale for this library: [Dynamic XML Library with Python](https://claybrooks.github.io/python/2021/04/09/python-dynamic-xml.html)
 
-[pip](https://pypi.org/project/dynamicxml/)
+Pip Installer: [pip](https://pypi.org/project/dynamicxml/)
+
 python -m pip install dynamicxml
 
 `DynamicElement` is a drop-in replacement for any Etree code that you already have
