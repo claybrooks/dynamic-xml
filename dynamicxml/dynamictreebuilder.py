@@ -1,5 +1,5 @@
 from xml.etree.ElementTree import TreeBuilder
-from dynamicelement import DynamicElement
+from .dynamicelement import DynamicElement
 
 class DynamicTreeBuilder(TreeBuilder):
     def __init__(self, *args, **kwargs):

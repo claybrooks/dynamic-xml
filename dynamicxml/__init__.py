@@ -1,4 +1,3 @@
-
 import logging
 
 # this is to force etree to use the python implementation so we can implement our own classes
@@ -6,11 +5,10 @@ import sys
 sys.modules['_elementtree'] = None
 
 from xml.etree.ElementTree import parse as etree_parse
-from xml.etree.ElementTree import dump
 from xml.etree.ElementTree import ElementTree
 
-from dynamicxmlparser import DynamicXmlParser
-from dynamicelement import DynamicElement
+from .dynamicxmlparser import DynamicXmlParser
+from .dynamicelement import DynamicElement
 
 def parse(path_to_xml:str) -> DynamicElement:
 

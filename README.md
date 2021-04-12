@@ -1,4 +1,4 @@
-# dynamic-xml
+# dynamicxml
 
 A simple extension of Etree that gives users the ability to directly access attributes and nodes without having to
 implement boilerplate python code.
