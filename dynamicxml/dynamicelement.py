@@ -3,7 +3,7 @@ from xml.etree.ElementTree import ElementTree, Element
 class DynamicElement(Element):
     def __init__(self, tag, attrib={}, attr_prefix='attr_', **extra):
         self.attr_prefix = attr_prefix
-        super().__init__(tag=tag, attrib=attrib, **extra)
+        super(DynamicElement, self).__init__(tag=tag, attrib=attrib, **extra)
 
     def __getattr__(self, key:str):
 
@@ -24,7 +24,7 @@ class DynamicElement(Element):
 
         # defer to super if it's a predefined member
         if key in self.__dict__ or key in ['attr_prefix', 'tag', 'attrib', 'text', 'tail', '_children']:
-            super().__setattr__(key, value)
+            super(DynamicElement, self).__setattr__(key, value)
             return
 
         # only attr_prefix lookups are allowed

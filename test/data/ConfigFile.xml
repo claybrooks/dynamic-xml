@@ -1,0 +1,3 @@
+<ConfigurationData>
+    <Runtime timeout="1000" runtimeDataPath="/path/to/runtime/data" />
+</ConfigurationData>
